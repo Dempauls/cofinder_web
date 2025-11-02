@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Coffee Finder — Minglanilla</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 12px; background: #fffaf3; }
+    h1 { color: #5b3a29; text-align: center; }
+    #map { height: 500px; width: 100%; margin-top: 12px; border-radius: 10px; }
+    .controls { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom: 10px; }
+    input { padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; }
+    button { background: #6f4e37; color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #563826; }
+    .results { margin-top: 15px; }
+    ul { list-style: none; padding: 0; }
+    li { background: #fff; border: 1px solid #ddd; padding: 8px; border-radius: 6px; margin-bottom: 6px; }
+    a { color: #6f4e37; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .btn-small { padding: 4px 8px; font-size: 13px; margin-top: 4px; display:inline-block; }
+    .review-form { margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>☕ Coffee Finder — Minglanilla, Cebu</h1>
+
+  <div class="controls">
+    <input id="q" placeholder="Search coffee shop name" />
+    <button id="searchBtn">Search</button>
+    <a href="/login" style="padding: 7px 12px; background:#6f4e37; color:white; border-radius:6px; text-decoration:none;">Login</a>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="results">
+    <h3>Results</h3>
+    <ul id="resultsList"></ul>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([10.2458, 123.7961], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let markers = [];
+
+    function clearMarkers(){
+      markers.forEach(m => map.removeLayer(m));
+      markers = [];
+    }
+
+    function addMarker(shop){
+      if (!shop.lat || !shop.lon) return;
+
+      const coffeeIcon = L.icon({
+        iconUrl: "https://cdn-icons-png.flaticon.com/512/924/924514.png",
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -30]
+      });
+
+      // Ensure link exists, otherwise generate from lat/lon
+      const mapsLink = shop.link && shop.link.trim() !== "" 
+        ? shop.link 
+        : `https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lon}`;
+
+      const m = L.marker([shop.lat, shop.lon], { icon: coffeeIcon }).addTo(map);
+
+      const popup = `
+        <div style="text-align:center;">
+          <strong>${shop.name}</strong><br>
+          ${shop.address || ''}<br>
+          ${shop.description || ''}<br>
+          <a href="${mapsLink}" target="_blank">📍 Get Directions</a><br>
+          <form method="POST" action="/favorite/${shop.id}" style="margin-top:6px;">
+            <button type="submit" class="btn-small">❤️ Favorite</button>
+          </form>
+          <form method="POST" action="/review/${shop.id}" class="review-form">
+            <input type="number" name="rating" min="1" max="5" placeholder="⭐ 1-5" required style="width:60px; text-align:center;">
+            <input type="text" name="comment" placeholder="Your review" required style="width:120px;">
+            <button type="submit" class="btn-small">📝 Submit</button>
+          </form>
+        </div>
+      `;
+      m.bindPopup(popup);
+      markers.push(m);
+    }
+
+    async function search(){
+      const q = document.getElementById('q').value;
+
+      const params = new URLSearchParams();
+      if (q) params.set('q', q);
+
+      const res = await fetch('/api/shops?' + params.toString());
+      const shops = await res.json();
+
+      clearMarkers();
+      const list = document.getElementById('resultsList');
+      list.innerHTML = '';
+
+      if (shops.length === 0){
+        list.innerHTML = '<li>No results found</li>';
+      }
+
+      shops.forEach(s => {
+        const mapsLink = s.link && s.link.trim() !== "" 
+          ? s.link 
+          : `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lon}`;
+
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>${s.name}</strong> - ${s.address}<br>
+          <a href="${mapsLink}" target="_blank">📍 Get Directions</a><br>
+          <form method="POST" action="/favorite/${s.id}" style="display:inline;">
+            <button type="submit" class="btn-small">❤️ Favorite</button>
+          </form>
+          <form method="POST" action="/review/${s.id}" class="review-form">
+            <input type="number" name="rating" min="1" max="5" placeholder="⭐" required style="width:50px;">
+            <input type="text" name="comment" placeholder="Write review" required style="width:120px;">
+            <button type="submit" class="btn-small">📝</button>
+          </form>
+        `;
+        list.appendChild(li);
+        addMarker(s);
+      });
+
+      if (markers.length > 0){
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.2));
+      } else {
+        map.setView([10.2458, 123.7961], 14);
+      }
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', search);
+    window.onload = search;
+  </script>
+</body>
+</html>

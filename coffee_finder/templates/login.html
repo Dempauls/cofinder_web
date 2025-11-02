@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Login — Coffee Finder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fffaf3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-box {
+      background: #6f4e37; /* Brown background */
+      padding: 30px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 320px;
+      color: white; /* Make text readable */
+    }
+    h2 {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      border-color: #fff;
+      outline: none;
+    }
+    .show-password {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #fff;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #563826;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #452d1f;
+    }
+    .error {
+      color: #ffdddd;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .link {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    .link a {
+      color: #fff;
+      text-decoration: none;
+    }
+    .link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Login</h2>
+    <form method="POST" action="/login">
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="password" placeholder="Password" id="password" required>
+      
+      <div class="show-password">
+        <input type="checkbox" id="togglePassword">
+        <label for="togglePassword">Show Password</label>
+      </div>
+
+      <button type="submit">Login</button>
+    </form>
+
+    <div class="link">
+      <a href="/">Back to Map</a>
+    </div>
+
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+  </div>
+
+  <script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+    togglePassword.addEventListener('change', () => {
+      password.type = togglePassword.checked ? 'text' : 'password';
+    });
+  </script>
+</body>
+</html>
