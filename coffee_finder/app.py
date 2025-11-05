@@ -256,7 +256,7 @@ def admin_delete(cafe_id):
 
 
 
-# ------------------- Main -------------------
+
 if __name__ == "__main__":
     init_db()
     print(" Coffee Finder running at http://127.0.0.1:5000")

@@ -62,7 +62,7 @@
         popupAnchor: [0, -30]
       });
 
-      // Ensure link exists, otherwise generate from lat/lon
+      
       const mapsLink = shop.link && shop.link.trim() !== "" 
         ? shop.link 
         : `https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lon}`;
